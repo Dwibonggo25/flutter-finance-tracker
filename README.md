@@ -255,3 +255,18 @@ flutter test
 - Add bank synchronization through a licensed provider
 - Add biometric app lock and encrypted offline caching
 - Add home-screen widgets for balances and upcoming bills
+
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/login.png" width="220" alt="Login screen">
+  <img src="screenshots/dashboard.png" width="220" alt="Dashboard screen">
+  <img src="screenshots/add-transaction.png" width="220" alt="Add transaction screen">
+</p>
+
+<p align="center">
+  <img src="screenshots/cash-flow.png" width="220" alt="Cash flow screen">
+  <img src="screenshots/profile.png" width="220" alt="Profile screen">
+  <img src="screenshots/list.png" width="220" alt="List Category">
+</p>
