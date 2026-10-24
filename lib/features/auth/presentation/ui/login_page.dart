@@ -38,10 +38,6 @@ class _LoginViewState extends State<_LoginView> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _isRegisterMode = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmation = true;
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -68,8 +64,6 @@ class _LoginViewState extends State<_LoginView> {
               }
             },
             builder: (context, state) {
-              final isLoading = state is AuthLoading;
-
               return SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                 child: Center(
@@ -86,7 +80,7 @@ class _LoginViewState extends State<_LoginView> {
                           const _FirebaseSetupNotice(),
                           const SizedBox(height: 16),
                         ],
-                        _buildForm(context, isLoading),
+                        _buildForm(context, state),
                       ],
                     ),
                   ),
@@ -99,7 +93,12 @@ class _LoginViewState extends State<_LoginView> {
     );
   }
 
-  Widget _buildForm(BuildContext context, bool isLoading) {
+  Widget _buildForm(BuildContext context, AuthState state) {
+    final isLoading = state is AuthLoading;
+    final isRegisterMode = state.isRegisterMode;
+    final obscurePassword = state.obscurePassword;
+    final obscureConfirmation = state.obscureConfirmation;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -124,7 +123,7 @@ class _LoginViewState extends State<_LoginView> {
             children: [
               Text(
                 context.tr(
-                  _isRegisterMode
+                  isRegisterMode
                       ? LanguageKeys.createAccount
                       : LanguageKeys.welcome,
                 ),
@@ -137,7 +136,7 @@ class _LoginViewState extends State<_LoginView> {
               const SizedBox(height: 6),
               Text(
                 context.tr(
-                  _isRegisterMode
+                  isRegisterMode
                       ? LanguageKeys.registerSubtitle
                       : LanguageKeys.loginSubtitle,
                 ),
@@ -165,11 +164,11 @@ class _LoginViewState extends State<_LoginView> {
               TextFormField(
                 controller: _passwordController,
                 enabled: !isLoading,
-                obscureText: _obscurePassword,
-                textInputAction: _isRegisterMode
+                obscureText: obscurePassword,
+                textInputAction: isRegisterMode
                     ? TextInputAction.next
                     : TextInputAction.done,
-                autofillHints: _isRegisterMode
+                autofillHints: isRegisterMode
                     ? const [AutofillHints.newPassword]
                     : const [AutofillHints.password],
                 decoration:
@@ -179,32 +178,34 @@ class _LoginViewState extends State<_LoginView> {
                       icon: Icons.lock_outline_rounded,
                     ).copyWith(
                       suffixIcon: IconButton(
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
-                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () => BlocProvider.of<AuthBloc>(
+                                context,
+                              ).add(const AuthPasswordVisibilityToggled()),
                         tooltip: context.tr(
-                          _obscurePassword
+                          obscurePassword
                               ? LanguageKeys.showPassword
                               : LanguageKeys.hidePassword,
                         ),
                         icon: Icon(
-                          _obscurePassword
+                          obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
                         ),
                       ),
                     ),
                 validator: _validatePassword,
-                onFieldSubmitted: _isRegisterMode
+                onFieldSubmitted: isRegisterMode
                     ? null
                     : (_) => _submit(context),
               ),
-              if (_isRegisterMode) ...[
+              if (isRegisterMode) ...[
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmPasswordController,
                   enabled: !isLoading,
-                  obscureText: _obscureConfirmation,
+                  obscureText: obscureConfirmation,
                   textInputAction: TextInputAction.done,
                   autofillHints: const [AutofillHints.newPassword],
                   decoration:
@@ -214,16 +215,18 @@ class _LoginViewState extends State<_LoginView> {
                         icon: Icons.verified_user_outlined,
                       ).copyWith(
                         suffixIcon: IconButton(
-                          onPressed: () => setState(
-                            () => _obscureConfirmation = !_obscureConfirmation,
-                          ),
+                          onPressed: isLoading
+                              ? null
+                              : () => BlocProvider.of<AuthBloc>(context).add(
+                                  const AuthConfirmationVisibilityToggled(),
+                                ),
                           tooltip: context.tr(
-                            _obscureConfirmation
+                            obscureConfirmation
                                 ? LanguageKeys.showPassword
                                 : LanguageKeys.hidePassword,
                           ),
                           icon: Icon(
-                            _obscureConfirmation
+                            obscureConfirmation
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                           ),
@@ -240,7 +243,7 @@ class _LoginViewState extends State<_LoginView> {
                   onFieldSubmitted: (_) => _submit(context),
                 ),
               ],
-              if (!_isRegisterMode)
+              if (!isRegisterMode)
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -277,7 +280,7 @@ class _LoginViewState extends State<_LoginView> {
                           )
                         : Text(
                             context.tr(
-                              _isRegisterMode
+                              isRegisterMode
                                   ? LanguageKeys.register
                                   : LanguageKeys.login,
                             ),
@@ -296,17 +299,17 @@ class _LoginViewState extends State<_LoginView> {
                 children: [
                   Text(
                     context.tr(
-                      _isRegisterMode
+                      isRegisterMode
                           ? LanguageKeys.alreadyHaveAccount
                           : LanguageKeys.noAccount,
                     ),
                     style: const TextStyle(color: Color(0xFF66736C)),
                   ),
                   TextButton(
-                    onPressed: isLoading ? null : _toggleMode,
+                    onPressed: isLoading ? null : () => _toggleMode(context),
                     child: Text(
                       context.tr(
-                        _isRegisterMode
+                        isRegisterMode
                             ? LanguageKeys.login
                             : LanguageKeys.register,
                       ),
@@ -377,7 +380,7 @@ class _LoginViewState extends State<_LoginView> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final bloc = BlocProvider.of<AuthBloc>(context);
-    if (_isRegisterMode) {
+    if (bloc.state.isRegisterMode) {
       bloc.add(
         AuthRegisterSubmitted(
           email: _emailController.text,
@@ -394,12 +397,10 @@ class _LoginViewState extends State<_LoginView> {
     }
   }
 
-  void _toggleMode() {
-    setState(() {
-      _isRegisterMode = !_isRegisterMode;
-      _confirmPasswordController.clear();
-      _formKey.currentState?.reset();
-    });
+  void _toggleMode(BuildContext context) {
+    _confirmPasswordController.clear();
+    _formKey.currentState?.reset();
+    BlocProvider.of<AuthBloc>(context).add(const AuthModeToggled());
   }
 
   Future<void> _showResetPasswordDialog(BuildContext context) async {

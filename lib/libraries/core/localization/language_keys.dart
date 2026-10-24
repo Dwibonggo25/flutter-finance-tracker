@@ -93,6 +93,7 @@ abstract final class LanguageKeys {
   static const saveBudget = 'save_budget';
   static const budgetSaved = 'budget_saved';
   static const budgetSaveFailed = 'budget_save_failed';
+  static const budgetLoadFailed = 'budget_load_failed';
   static const budgetNotSet = 'budget_not_set';
   static const notSet = 'not_set';
   static const budgetSetupHint = 'budget_setup_hint';
@@ -194,6 +195,7 @@ abstract final class LanguageKeys {
   static const deleteCategoryWarning = 'delete_category_warning';
   static const categorySaveFailed = 'category_save_failed';
   static const categoryDeleteFailed = 'category_delete_failed';
+  static const categoryLoadFailed = 'category_load_failed';
   static const export = 'export';
   static const help = 'help';
   static const aiAssistant = 'ai_assistant';

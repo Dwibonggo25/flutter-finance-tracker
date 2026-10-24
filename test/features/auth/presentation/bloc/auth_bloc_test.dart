@@ -51,6 +51,51 @@ void main() {
       await expectation;
       await bloc.close();
     });
+
+    test('moves login form UI state through bloc events', () async {
+      final bloc = AuthBloc(_FakeAuthRepository());
+
+      var expectation = expectLater(
+        bloc.stream,
+        emits(
+          const AuthFormUpdated(
+            isRegisterMode: true,
+            obscurePassword: true,
+            obscureConfirmation: true,
+          ),
+        ),
+      );
+      bloc.add(const AuthModeToggled());
+      await expectation;
+
+      expectation = expectLater(
+        bloc.stream,
+        emits(
+          const AuthFormUpdated(
+            isRegisterMode: true,
+            obscurePassword: false,
+            obscureConfirmation: true,
+          ),
+        ),
+      );
+      bloc.add(const AuthPasswordVisibilityToggled());
+      await expectation;
+
+      expectation = expectLater(
+        bloc.stream,
+        emits(
+          const AuthFormUpdated(
+            isRegisterMode: true,
+            obscurePassword: false,
+            obscureConfirmation: false,
+          ),
+        ),
+      );
+      bloc.add(const AuthConfirmationVisibilityToggled());
+      await expectation;
+
+      await bloc.close();
+    });
   });
 }
 

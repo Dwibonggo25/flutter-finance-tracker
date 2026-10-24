@@ -110,6 +110,8 @@ abstract final class In {
     LanguageKeys.budgetSaved: 'Anggaran bulanan berhasil disimpan.',
     LanguageKeys.budgetSaveFailed:
         'Anggaran tidak dapat disimpan. Silakan coba kembali.',
+    LanguageKeys.budgetLoadFailed:
+        'Anggaran tidak dapat dimuat. Silakan coba kembali.',
     LanguageKeys.budgetNotSet: 'Anggaran bulanan belum diatur.',
     LanguageKeys.notSet: 'Belum diatur',
     LanguageKeys.budgetSetupHint:
@@ -218,6 +220,7 @@ abstract final class In {
         'Transaksi lama tetap tersimpan, tetapi kategori ini tidak dapat dipilih lagi.',
     LanguageKeys.categorySaveFailed: 'Kategori gagal disimpan.',
     LanguageKeys.categoryDeleteFailed: 'Kategori gagal dihapus.',
+    LanguageKeys.categoryLoadFailed: 'Kategori gagal dimuat.',
     LanguageKeys.export: 'Ekspor',
     LanguageKeys.help: 'Bantuan',
     LanguageKeys.aiAssistant: 'Asisten Keuangan AI',

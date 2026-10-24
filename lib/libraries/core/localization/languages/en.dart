@@ -112,6 +112,8 @@ abstract final class En {
     LanguageKeys.budgetSaved: 'Monthly budget saved.',
     LanguageKeys.budgetSaveFailed:
         'Unable to save the budget. Please try again.',
+    LanguageKeys.budgetLoadFailed:
+        'Unable to load the budget. Please try again.',
     LanguageKeys.budgetNotSet: 'Monthly budget has not been set.',
     LanguageKeys.notSet: 'Not set',
     LanguageKeys.budgetSetupHint:
@@ -222,6 +224,7 @@ abstract final class En {
         'Existing transactions remain saved, but this category can no longer be selected.',
     LanguageKeys.categorySaveFailed: 'Unable to save the category.',
     LanguageKeys.categoryDeleteFailed: 'Unable to delete the category.',
+    LanguageKeys.categoryLoadFailed: 'Unable to load categories.',
     LanguageKeys.export: 'Export',
     LanguageKeys.help: 'Help',
     LanguageKeys.aiAssistant: 'AI Finance Assistant',

@@ -11,6 +11,18 @@ final class AuthStarted extends AuthEvent {
   const AuthStarted();
 }
 
+final class AuthModeToggled extends AuthEvent {
+  const AuthModeToggled();
+}
+
+final class AuthPasswordVisibilityToggled extends AuthEvent {
+  const AuthPasswordVisibilityToggled();
+}
+
+final class AuthConfirmationVisibilityToggled extends AuthEvent {
+  const AuthConfirmationVisibilityToggled();
+}
+
 final class AuthLoginSubmitted extends AuthEvent {
   final String email;
   final String password;

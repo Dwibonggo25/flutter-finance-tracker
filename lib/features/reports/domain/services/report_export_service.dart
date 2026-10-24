@@ -10,6 +10,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 
 import '../../../transactions/domain/entities/finance_transaction.dart';
+import '../../../transactions/domain/extensions/finance_transaction_iterable_extension.dart';
 
 class ReportExportService {
   const ReportExportService();
@@ -31,8 +32,8 @@ class ReportExportService {
   }
 
   Future<Uint8List> buildPdf(List<FinanceTransaction> transactions) async {
-    final income = _totalOf(transactions, FinanceTransactionType.income);
-    final expense = _totalOf(transactions, FinanceTransactionType.expense);
+    final income = transactions.totalIncome;
+    final expense = transactions.totalExpense;
     final document = pw.Document();
     document.addPage(
       pw.MultiPage(
@@ -112,13 +113,6 @@ class ReportExportService {
       ),
     );
   }
-
-  double _totalOf(
-    List<FinanceTransaction> transactions,
-    FinanceTransactionType type,
-  ) => transactions
-      .where((transaction) => transaction.type == type)
-      .fold(0, (total, transaction) => total + transaction.amount);
 
   String _money(double value) => NumberFormat.currency(
     locale: 'id_ID',

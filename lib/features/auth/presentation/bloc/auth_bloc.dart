@@ -11,6 +11,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   AuthBloc(this._repository) : super(const AuthInitial()) {
     on<AuthStarted>(_onStarted);
+    on<AuthModeToggled>(_onModeToggled);
+    on<AuthPasswordVisibilityToggled>(_onPasswordVisibilityToggled);
+    on<AuthConfirmationVisibilityToggled>(_onConfirmationVisibilityToggled);
     on<AuthLoginSubmitted>(_onLoginSubmitted);
     on<AuthRegisterSubmitted>(_onRegisterSubmitted);
     on<AuthPasswordResetRequested>(_onPasswordResetRequested);
@@ -20,8 +23,52 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   void _onStarted(AuthStarted event, Emitter<AuthState> emit) {
     emit(
       _repository.hasSignedInUser
-          ? const AuthAuthenticated()
-          : const AuthUnauthenticated(),
+          ? AuthAuthenticated(
+              isRegisterMode: state.isRegisterMode,
+              obscurePassword: state.obscurePassword,
+              obscureConfirmation: state.obscureConfirmation,
+            )
+          : AuthUnauthenticated(
+              isRegisterMode: state.isRegisterMode,
+              obscurePassword: state.obscurePassword,
+              obscureConfirmation: state.obscureConfirmation,
+            ),
+    );
+  }
+
+  void _onModeToggled(AuthModeToggled event, Emitter<AuthState> emit) {
+    emit(
+      AuthFormUpdated(
+        isRegisterMode: !state.isRegisterMode,
+        obscurePassword: state.obscurePassword,
+        obscureConfirmation: state.obscureConfirmation,
+      ),
+    );
+  }
+
+  void _onPasswordVisibilityToggled(
+    AuthPasswordVisibilityToggled event,
+    Emitter<AuthState> emit,
+  ) {
+    emit(
+      AuthFormUpdated(
+        isRegisterMode: state.isRegisterMode,
+        obscurePassword: !state.obscurePassword,
+        obscureConfirmation: state.obscureConfirmation,
+      ),
+    );
+  }
+
+  void _onConfirmationVisibilityToggled(
+    AuthConfirmationVisibilityToggled event,
+    Emitter<AuthState> emit,
+  ) {
+    emit(
+      AuthFormUpdated(
+        isRegisterMode: state.isRegisterMode,
+        obscurePassword: state.obscurePassword,
+        obscureConfirmation: !state.obscureConfirmation,
+      ),
     );
   }
 
@@ -49,19 +96,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthPasswordResetRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const AuthLoading());
+    emit(_loadingState());
     try {
       await _repository.sendPasswordResetEmail(event.email);
       emit(
         AuthActionSuccess(
           LanguageController.instance.translate(LanguageKeys.passwordResetSent),
+          isRegisterMode: state.isRegisterMode,
+          obscurePassword: state.obscurePassword,
+          obscureConfirmation: state.obscureConfirmation,
         ),
       );
     } on AuthenticationFailure catch (error) {
-      emit(AuthFailure(error.message));
+      emit(_failureState(error.message));
     } catch (_) {
       emit(
-        AuthFailure(
+        _failureState(
           LanguageController.instance.translate(
             LanguageKeys.passwordResetFailed,
           ),
@@ -74,12 +124,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const AuthLoading());
+    emit(_loadingState());
     try {
       await _repository.signOut();
-      emit(const AuthUnauthenticated());
+      emit(
+        AuthUnauthenticated(
+          isRegisterMode: state.isRegisterMode,
+          obscurePassword: state.obscurePassword,
+          obscureConfirmation: state.obscureConfirmation,
+        ),
+      );
     } on AuthenticationFailure catch (error) {
-      emit(AuthFailure(error.message));
+      emit(_failureState(error.message));
     }
   }
 
@@ -87,15 +143,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
     Future<void> Function() action,
   ) async {
-    emit(const AuthLoading());
+    emit(_loadingState());
     try {
       await action();
-      emit(const AuthAuthenticated());
+      emit(
+        AuthAuthenticated(
+          isRegisterMode: state.isRegisterMode,
+          obscurePassword: state.obscurePassword,
+          obscureConfirmation: state.obscureConfirmation,
+        ),
+      );
     } on AuthenticationFailure catch (error) {
-      emit(AuthFailure(error.message));
+      emit(_failureState(error.message));
     } catch (_) {
       emit(
-        AuthFailure(
+        _failureState(
           LanguageController.instance.translate(
             LanguageKeys.authenticationFailed,
           ),
@@ -103,4 +165,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
     }
   }
+
+  AuthLoading _loadingState() => AuthLoading(
+    isRegisterMode: state.isRegisterMode,
+    obscurePassword: state.obscurePassword,
+    obscureConfirmation: state.obscureConfirmation,
+  );
+
+  AuthFailure _failureState(String message) => AuthFailure(
+    message,
+    isRegisterMode: state.isRegisterMode,
+    obscurePassword: state.obscurePassword,
+    obscureConfirmation: state.obscureConfirmation,
+  );
 }
