@@ -27,7 +27,7 @@ import '../../../profile/presentation/ui/profile_page.dart';
 import '../../../transactions/domain/entities/finance_transaction.dart';
 import '../../../transactions/domain/extensions/finance_transaction_iterable_extension.dart';
 import '../../../transactions/domain/repositories/transaction_repository.dart';
-import 'budget_tab.dart';
+import '../../../budgets/presentation/ui/budget_tab.dart';
 import 'qris_page.dart';
 import 'reports_tab.dart';
 
