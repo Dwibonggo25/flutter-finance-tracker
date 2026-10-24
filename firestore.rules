@@ -1,0 +1,165 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function validProfile(data) {
+      return data.keys().hasOnly([
+          'displayName',
+          'address',
+          'photoUrl',
+          'pendingEmail',
+          'updatedAt'
+        ])
+        && data.displayName is string
+        && data.displayName.size() <= 120
+        && data.address is string
+        && data.address.size() <= 500
+        && data.photoUrl is string
+        && data.photoUrl.size() <= 2048
+        && data.pendingEmail is string
+        && data.pendingEmail.size() <= 320
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && validProfile(request.resource.data);
+      allow delete: if false;
+    }
+
+    function validTransaction(data) {
+      return data.keys().hasOnly([
+          'title',
+          'category',
+          'amount',
+          'date',
+          'type',
+          'note',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 120
+        && data.category is string
+        && data.category.size() > 0
+        && data.amount is number
+        && data.amount > 0
+        && data.date is timestamp
+        && data.type in ['income', 'expense']
+        && data.note is string
+        && data.note.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId}/transactions/{transactionId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && validTransaction(request.resource.data);
+      allow update: if isOwner(userId)
+        && validTransaction(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function validBudget(data) {
+      return data.keys().hasOnly([
+          'year',
+          'month',
+          'categoryLimits',
+          'updatedAt'
+        ])
+        && data.year is int
+        && data.year >= 2000
+        && data.month is int
+        && data.month >= 1
+        && data.month <= 12
+        && data.categoryLimits is map
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId}/budgets/{budgetId} {
+      allow read, delete: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && validBudget(request.resource.data);
+    }
+
+    function validRecurringTransaction(data) {
+      return data.keys().hasOnly([
+          'title',
+          'amount',
+          'type',
+          'category',
+          'dayOfMonth',
+          'reminderDaysBefore',
+          'isActive',
+          'note',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.title is string
+        && data.title.size() > 0
+        && data.title.size() <= 120
+        && data.amount is number
+        && data.amount > 0
+        && data.type in ['income', 'expense']
+        && data.category is string
+        && data.category.size() > 0
+        && data.dayOfMonth is int
+        && data.dayOfMonth >= 1
+        && data.dayOfMonth <= 31
+        && data.reminderDaysBefore is int
+        && data.reminderDaysBefore >= 0
+        && data.reminderDaysBefore <= 30
+        && data.isActive is bool
+        && data.note is string
+        && data.note.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId}/recurringTransactions/{transactionId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && validRecurringTransaction(request.resource.data);
+      allow update: if isOwner(userId)
+        && validRecurringTransaction(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function validExpenseCategory(data) {
+      return data.keys().hasOnly([
+          'name',
+          'iconKey',
+          'colorValue',
+          'sortOrder',
+          'isDefault',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 60
+        && data.iconKey is string
+        && data.colorValue is int
+        && data.sortOrder is int
+        && data.isDefault is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /users/{userId}/expenseCategories/{categoryId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && validExpenseCategory(request.resource.data);
+      allow update: if isOwner(userId)
+        && validExpenseCategory(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+  }
+}
